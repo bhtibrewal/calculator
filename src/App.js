@@ -1,24 +1,19 @@
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+import PubNub from "pubnub";
+import { PubNubProvider } from "pubnub-react";
+import Chat from "./Chat";
+
+const pubnub = new PubNub({
+  publishKey: "pub-c-c7ce2ee4-7ac5-4d80-aed0-41f36500536b",
+  subscribeKey: "sub-c-8c3f480c-6475-461d-b51e-e59c57bf59d8",
+  uuid: "myUniqueUUID",
+});
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <PubNubProvider client={pubnub}>
+      <Chat />
+    </PubNubProvider>
   );
 }
 
