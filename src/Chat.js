@@ -5,7 +5,6 @@ function Chat() {
   const pubnub = usePubNub();
   const [channels] = useState(["awesome-channel"]);
   const [messages, addMessage] = useState([]);
-  const [message, setMessage] = useState("");
   const handleMessage = (event) => {
     const message = event.message;
 
@@ -26,9 +25,7 @@ function Chat() {
   const sendMessage = (message) => {
     console.log(message);
     if (message) {
-      pubnub
-        .publish({ channel: channels[0], message })
-        .then(() => setMessage(""));
+      pubnub.publish({ channel: channels[0], message });
     }
   };
   return (
