@@ -1,21 +1,41 @@
 import { usePubNub } from "pubnub-react";
 import { useEffect, useState } from "react";
 
-function Chat() {
+const buttons = [9, 8, 7, "C", 6, 5, 4, "/", 3, 2, 1, "*", 0, "+", "-", "="];
+function Calculator() {
   const pubnub = usePubNub();
+  pubnub.fetchMessages(
+    {
+      channels: ["awesome-channel"],
+      end: '15343325004275466',
+      count: 100
+    },
+    function(status, response) {
+      console.log(status, response);
+    }
+  );
   const [channels] = useState(["awesome-channel"]);
-  const [messages, addMessage] = useState([]);
+  // const [messages, addMessage] = useState([]);
+  const [calculation, setCalculation] = useState([]);
+  
   const handleMessage = (event) => {
-    const message = event.message;
-
-    const text = message.text || message;
-    addMessage((messages) => [...messages, text]);
+    console.log(channels);
+    const value = event.message;
+    setCalculation((prev) => {
+      if (typeof value === "number") return [...prev, value];
+      if (value === "C") return [];
+      if (value === "=") return [eval(prev.join(""))];
+      else {
+        if (typeof prev.at(-1) === "number") return [...prev, value];
+        else return [...prev.pop(), value];
+      }
+    });
   };
-
+  console.log(calculation);
   useEffect(() => {
     const listenerParams = { message: handleMessage };
     pubnub.addListener(listenerParams);
-    pubnub.subscribe({ channels });
+    pubnub.subscribe({ channels, withPresence: true });
     return () => {
       pubnub.unsubscribe({ channels });
       pubnub.removeListener(listenerParams);
@@ -33,35 +53,30 @@ function Chat() {
       <div style={chatStyles}>
         <div style={headerStyles}>Calculator</div>
         <div style={listStyles}>
-          {messages.map((message, index) => {
-            return (
-              <div key={`message-${index}`} style={messageStyles}>
-                {message}
-              </div>
-            );
-          })}
+          <div key={`calculation`} style={messageStyles}>
+            {calculation}
+          </div>
         </div>
         <div style={footerStyles}>
-          {Array(10)
-            .fill("")
-            .map((item, index) => {
-              return (
-                <button
-                  style={buttonStyles}
-                  onClick={(e) => {
-                    sendMessage(index);
-                  }}
-                >
-                  {index}
-                </button>
-              );
-            })}
+          {buttons.map((item, index) => {
+            return (
+              <button
+                style={buttonStyles}
+                onClick={(e) => {
+                  sendMessage(item);
+                }}
+              >
+                {item}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
-export default Chat;
+export default Calculator;
+
 const pageStyles = {
   alignItems: "center",
   background: "#282c34",
@@ -73,7 +88,7 @@ const pageStyles = {
 const chatStyles = {
   display: "flex",
   flexDirection: "column",
-  width: "50%",
+  width: "24rem",
 };
 
 const headerStyles = {
@@ -87,10 +102,11 @@ const listStyles = {
   alignItems: "flex-start",
   backgroundColor: "white",
   display: "flex",
-
+  justifyContent: "flex-end",
   flexGrow: 1,
   overflow: "auto",
   padding: "10px",
+  height: "2rem",
 };
 
 const messageStyles = {
@@ -98,16 +114,16 @@ const messageStyles = {
   borderRadius: "5px",
   color: "#333",
   fontSize: "1.1rem",
-  margin: "5px",
   padding: "8px 15px",
 };
 
 const footerStyles = {
-  display: "flex",
+  display: "grid",
+  gridTemplateColumns: "repeat(4, 1fr)",
 };
 
 const buttonStyles = {
-  fontSize: "1.1rem",
+  fontSize: "1.4rem",
   margin: "5px",
   padding: "8px 15px",
 };

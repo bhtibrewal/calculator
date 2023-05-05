@@ -1,7 +1,7 @@
 import "./App.css";
 import PubNub from "pubnub";
 import { PubNubProvider } from "pubnub-react";
-import Chat from "./Chat";
+import Calculator from "./Calculator";
 
 const pubnub = new PubNub({
   publishKey: "pub-c-c7ce2ee4-7ac5-4d80-aed0-41f36500536b",
@@ -12,7 +12,7 @@ const pubnub = new PubNub({
 function App() {
   return (
     <PubNubProvider client={pubnub}>
-      <Chat />
+      <Calculator />
     </PubNubProvider>
   );
 }
