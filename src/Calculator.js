@@ -50,7 +50,7 @@ function Calculator({ channels }) {
     } else if (message === "=") {
       if (typeof calculation.at(-1) === "number") {
         const answer = Number(
-         /* eslint-disable-next-line */
+          /* eslint-disable-next-line */
           parseFloat(eval(calculation.join(""))).toFixed(2)
         );
         computedMsg = [answer];
@@ -58,7 +58,10 @@ function Calculator({ channels }) {
     } else {
       if (typeof calculation.at(-1) === "number")
         computedMsg = [...calculation, message];
-      else computedMsg = [...calculation.slice(0, -1), message];
+      else
+        computedMsg = calculation.length
+          ? [...calculation.slice(0, -1), message]
+          : [];
     }
 
     console.log(computedMsg);
