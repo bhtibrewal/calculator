@@ -2,36 +2,34 @@ import { usePubNub } from "pubnub-react";
 import { useEffect, useState } from "react";
 
 const buttons = [9, 8, 7, "C", 6, 5, 4, "/", 3, 2, 1, "*", 0, "+", "-", "="];
-function Calculator() {
+function Calculator({ channels }) {
   const pubnub = usePubNub();
-  pubnub.fetchMessages(
-    {
-      channels: ["awesome-channel"],
-      end: '15343325004275466',
-      count: 100
-    },
-    function(status, response) {
-      console.log(status, response);
-    }
-  );
-  const [channels] = useState(["awesome-channel"]);
-  // const [messages, addMessage] = useState([]);
+
   const [calculation, setCalculation] = useState([]);
-  
+
   const handleMessage = (event) => {
-    console.log(channels);
     const value = event.message;
-    setCalculation((prev) => {
-      if (typeof value === "number") return [...prev, value];
-      if (value === "C") return [];
-      if (value === "=") return [eval(prev.join(""))];
-      else {
-        if (typeof prev.at(-1) === "number") return [...prev, value];
-        else return [...prev.pop(), value];
-      }
-    });
+    console.log(value);
+    setCalculation(value);
   };
-  console.log(calculation);
+
+  useEffect(() => {
+    pubnub.fetchMessages(
+      {
+        channels,
+        end: "15343325004275466",
+        count: 25,
+      },
+      function (status, response) {
+        const initialCalculation =
+          response.channels[channels[0]].at(-1).message;
+        console.log(response.channels);
+
+        setCalculation(initialCalculation);
+      }
+    );
+  }, [channels, pubnub]);
+
   useEffect(() => {
     const listenerParams = { message: handleMessage };
     pubnub.addListener(listenerParams);
@@ -43,11 +41,31 @@ function Calculator() {
   }, [pubnub, channels]);
 
   const sendMessage = (message) => {
-    console.log(message);
-    if (message) {
-      pubnub.publish({ channel: channels[0], message });
+    let computedMsg;
+
+    if (typeof message === "number") {
+      computedMsg = [...calculation, message];
+    } else if (message === "C") {
+      computedMsg = [];
+    } else if (message === "=") {
+      if (typeof calculation.at(-1) === "number") {
+        const answer = Number(
+         /* eslint-disable-next-line */
+          parseFloat(eval(calculation.join(""))).toFixed(2)
+        );
+        computedMsg = [answer];
+      } else computedMsg = [...calculation];
+    } else {
+      if (typeof calculation.at(-1) === "number")
+        computedMsg = [...calculation, message];
+      else computedMsg = [...calculation.slice(0, -1), message];
     }
+
+    console.log(computedMsg);
+
+    pubnub.publish({ channel: channels[0], message: computedMsg });
   };
+
   return (
     <div style={pageStyles}>
       <div style={chatStyles}>
@@ -61,6 +79,7 @@ function Calculator() {
           {buttons.map((item, index) => {
             return (
               <button
+                key={index}
                 style={buttonStyles}
                 onClick={(e) => {
                   sendMessage(item);

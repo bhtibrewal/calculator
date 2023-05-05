@@ -10,9 +10,11 @@ const pubnub = new PubNub({
 });
 
 function App() {
+  const calculatorChannel = "awesome-channel";
+
   return (
     <PubNubProvider client={pubnub}>
-      <Calculator />
+      <Calculator channels={[calculatorChannel]} />
     </PubNubProvider>
   );
 }
